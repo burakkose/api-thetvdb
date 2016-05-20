@@ -1,8 +1,8 @@
 package com.thetvdb.api
 
-import com.thetvdb.api.service.ClientService
+import com.thetvdb.api.service.ApiService
 
-class TvDBApi(apiKey: String) extends ClientService(apiKey)
+class TvDBApi(apiKey: String) extends ApiService(apiKey)
 
 object TvDBApi {
   def apply(apiKey: String): TvDBApi = new TvDBApi(apiKey).buildConnection()
