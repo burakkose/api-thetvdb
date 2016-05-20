@@ -5,6 +5,7 @@ import com.thetvdb.api.models.auth.{TokenRequest, TokenResponse}
 import com.thetvdb.api.models.episode.{Episode, EpisodeResponse}
 import com.thetvdb.api.models.language.{Language, LanguageResponse, LanguagesResponse}
 import com.thetvdb.api.models.series.{Series, SeriesResponse, SeriesSearchData, SeriesSearchResponse}
+import com.thetvdb.api.models.update.{Update, UpdateResponse}
 import spray.json.DefaultJsonProtocol
 
 
@@ -26,4 +27,7 @@ object Protocols extends DefaultJsonProtocol {
   implicit val languageFormat = jsonFormat4(Language)
   implicit val languagesRecordData = jsonFormat1(LanguagesResponse)
   implicit val languageRecordData = jsonFormat1(LanguageResponse)
+
+  implicit val updateFormat = jsonFormat2(Update)
+  implicit val updateResponseFormat = jsonFormat1(UpdateResponse)
 }

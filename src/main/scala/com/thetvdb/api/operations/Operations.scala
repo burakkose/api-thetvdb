@@ -5,71 +5,119 @@ import com.thetvdb.api.models.auth.TokenResponse
 import com.thetvdb.api.models.episode.Episode
 import com.thetvdb.api.models.language.Language
 import com.thetvdb.api.models.series.{Series, SeriesSearchData}
+import com.thetvdb.api.models.update.Update
 
 import scala.concurrent.Future
 
+/**
+  * Api Operations
+  */
 trait ApiOperations extends AuthOperations with LanguageOperations
-  with SeriesOperations with ActorOperations with EpisodeOperations
+  with SeriesOperations with ActorOperations with EpisodeOperations with UpdateOperation
 
+/**
+  * Obtaining and refreshing the JWT token
+  */
 trait AuthOperations {
   /**
+    * Returns a session token to be included in the rest of the requests.
+    * Note that API key authentication is required for all subsequent requests
+    * and user auth is required for routes in the User operations
     *
     * @return
     */
   def buildConnection(): this.type
 
   /**
+    * Refreshes your current, valid JWT token and returns a new token.
+    * Hit this route so that you do not have to post to /login with your API key
+    * and credentials once you have already been authenticated.
     *
-    * @return
+    * @return A new token to use in your subsequent requests
     */
-  def refreshToken(): Future[TokenResponse]
+  def refreshToken(): Future[Option[TokenResponse]]
 }
 
+/**
+  * Available languages and information
+  */
 trait LanguageOperations {
   /**
+    * All available languages.
     *
-    * @return
+    * @return An array of language objects.
     */
-  def getLanguages(): Future[List[Language]]
+  def getLanguages(): Future[Option[List[Language]]]
 
   /**
+    * Information about a particular language, given the language ID.
     *
-    * @param langID
-    * @return
+    * @param langID ID of the language
+    * @return A language objects.
     */
-  def getLanguage(langID: String): Future[Language]
+  def getLanguage(langID: String): Future[Option[Language]]
 }
 
+/**
+  * Search for a particular series and information about a specific series
+  */
 trait SeriesOperations {
   /**
+    * Allows the user to search for a series based on the following parameters.
     *
-    * @param url
-    * @return
+    * @param searchKey Name of the series to search for.
+    * @return An array of results that match the provided query.
     */
-  def searchSeries(url: String): Future[List[SeriesSearchData]]
+  def searchSeries(searchKey: String): Future[Option[List[SeriesSearchData]]]
 
   /**
+    * Returns a series records that contains all information known about a particular series id.
     *
-    * @param id
-    * @return
+    * @param id ID of the series
+    * @return A series record.
     */
-  def getSeries(id: String): Future[Series]
+  def getSeries(id: String): Future[Option[Series]]
 }
 
+/**
+  * Information about actors
+  */
 trait ActorOperations {
   /**
+    * Returns actors for the given series id
     *
-    * @param seriesID
-    * @return
+    * @param seriesID ID of the series
+    * @return An array of actor objects for the given series id.
     */
-  def getActors(seriesID: String): Future[List[Actor]]
+  def getActors(seriesID: String): Future[Option[List[Actor]]]
 }
 
+/**
+  * Information about a specific episode
+  */
 trait EpisodeOperations {
   /**
+    * All episodes for a given series.
     *
-    * @param episodeID
-    * @return
+    * @param episodeID ID of the series
+    * @return An array of episode objects for the given series id.
     */
-  def getEpisode(episodeID: String): Future[Episode]
+  def getEpisode(episodeID: String): Future[Option[Episode]]
+}
+
+/**
+  * Series that have been recently updated.
+  */
+trait UpdateOperation {
+  /**
+    * Returns an array of series that have changed in a maximum of one week
+    * blocks since the provided fromTime.
+    * The user may specify a toTime to grab results for less than a week.
+    * Any timespan larger than a week will be reduced down to one week automatically.
+    *
+    * @param fromTime Epoch time to start your date range.
+    * @param toTime   Epoch time to end your date range. Must be one week from fromTime.
+    * @return An array of Update objects that match the given timeframe.
+    */
+  def getUpdates(fromTime: String, toTime: Option[String] = None): Future[Option[List[Update]]]
 }
