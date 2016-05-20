@@ -7,5 +7,5 @@ private[utils] trait Config {
 }
 
 trait ApiConfig extends Config {
-  private val apiConfig = config.getConfig("http")
+  // private val apiConfig = config.getConfig("http")
 }
