@@ -1,4 +1,4 @@
 package com.thetvdb.api.models.auth
 
 case class TokenResponse(token: String)
-case class TokenRequest(apiKey: String)
+case class TokenRequest(apiKey: String, username: String, userKey: String)

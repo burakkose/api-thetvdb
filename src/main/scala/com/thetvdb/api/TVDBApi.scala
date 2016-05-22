@@ -2,8 +2,15 @@ package com.thetvdb.api
 
 import com.thetvdb.api.service.ApiService
 
-class TvDBApi(apiKey: String) extends ApiService(apiKey)
+class TVDBApi(apiKey: String, username: String, userKey: String)
+  extends ApiService(apiKey, username, userKey) {
+  def this(apiKey: String) = this(apiKey, "", "")
+}
 
-object TvDBApi {
-  def apply(apiKey: String): TvDBApi = new TvDBApi(apiKey).buildConnection()
+object TVDBApi {
+  def apply(apiKey: String): TVDBApi = new TVDBApi(apiKey).buildConnection()
+
+  def apply(apiKey: String, username: String, userKey: String): TVDBApi =
+    new TVDBApi(apiKey, username, userKey)
+      .buildConnection()
 }
