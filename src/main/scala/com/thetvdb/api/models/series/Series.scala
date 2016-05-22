@@ -1,41 +1,29 @@
 package com.thetvdb.api.models.series
 
 case class Series(
-                   id: Int,
-                   seriesName: String,
-                   aliases: Array[String],
-                   banner: String,
-                   seriesId: String,
-                   status: String,
-                   firstAired: String,
-                   network: String,
-                   networkId: String,
-                   runtime: String,
-                   genre: Array[String],
-                   overview: String,
-                   lastUpdated: Int,
-                   airsDayOfWeek: String,
-                   airsTime: String,
-                   rating: String,
-                   imdbId: String,
-                   zap2itId: String,
-                   added: String,
-                   siteRating: Double,
-                   siteRatingCount: Int
+                   id: Option[Int],
+                   seriesName: Option[String],
+                   aliases: Option[Array[String]],
+                   banner: Option[String],
+                   seriesId: Option[String],
+                   status: Option[String],
+                   firstAired: Option[String],
+                   network: Option[String],
+                   networkId: Option[String],
+                   runtime: Option[String],
+                   genre: Option[Array[String]],
+                   overview: Option[String],
+                   lastUpdated: Option[Int],
+                   airsDayOfWeek: Option[String],
+                   airsTime: Option[String],
+                   rating: Option[String],
+                   imdbId: Option[String],
+                   zap2itId: Option[String],
+                   added: Option[String],
+                   siteRating: Option[Double],
+                   siteRatingCount: Option[Int]
                  )
-
-case class SeriesSearchData(
-                             aliases: Array[String],
-                             banner: String,
-                             firstAired: String,
-                             id: Int,
-                             network: String,
-                             overview: String,
-                             seriesName: String,
-                             status: String
-                           )
 
 case class SeriesResponse(data: Series)
 
-case class SeriesSearchResponse(data: List[SeriesSearchData])
-
+case class SeriesSearchResponse(data: List[Series])

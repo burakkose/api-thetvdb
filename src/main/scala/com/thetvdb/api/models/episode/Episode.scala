@@ -1,28 +1,30 @@
 package com.thetvdb.api.models.episode
 
 case class Episode(
-                    id: Int,
-                    airedSeason: Int,
-                    airedEpisodeNumber: Int,
-                    episodeName: String,
-                    firstAired: String,
-                    guestStars: Array[String],
-                    director: String,
-                    writers: Array[String],
-                    overview: String,
-                    lastUpdated: Int,
-                    dvdDiscid: String,
-                    dvdSeason: Int,
-                    dvdEpisodeNumber: Double,
-                    dvdChapter: Double,
-                    absoluteNumber: Int,
-                    filename: String,
-                    seriesId: Int,
-                    thumbWidth: String,
-                    thumbHeight: String,
-                    imdbId: String,
-                    siteRating: Double,
-                    siteRatingCount: Int
+                    id: Option[Int],
+                    airedSeason: Option[Int],
+                    airedEpisodeNumber: Option[Int],
+                    episodeName: Option[String],
+                    firstAired: Option[String],
+                    guestStars: Option[Array[String]],
+                    director: Option[String],
+                    writers: Option[Array[String]],
+                    overview: Option[String],
+                    lastUpdated: Option[Int],
+                    dvdDiscid: Option[String],
+                    dvdSeason: Option[Int],
+                    dvdEpisodeNumber: Option[Double],
+                    dvdChapter: Option[Double],
+                    absoluteNumber: Option[Int],
+                    filename: Option[String],
+                    seriesId: Option[Int],
+                    thumbWidth: Option[String],
+                    thumbHeight: Option[String],
+                    imdbId: Option[String],
+                    siteRating: Option[Double],
+                    siteRatingCount: Option[Int]
                   )
 
 case class EpisodeResponse(data: Episode)
+
+case class SeriesEpisodesResponse(data: List[Episode])

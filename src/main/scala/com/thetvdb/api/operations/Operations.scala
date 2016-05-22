@@ -4,8 +4,9 @@ import com.thetvdb.api.models.actor.Actor
 import com.thetvdb.api.models.auth.TokenResponse
 import com.thetvdb.api.models.episode.Episode
 import com.thetvdb.api.models.language.Language
-import com.thetvdb.api.models.series.{Series, SeriesSearchData}
+import com.thetvdb.api.models.series.Series
 import com.thetvdb.api.models.update.Update
+import com.thetvdb.api.models.user.{User, UserFavorites, UserRatings}
 
 import scala.concurrent.Future
 
@@ -13,7 +14,8 @@ import scala.concurrent.Future
   * Api Operations
   */
 trait ApiOperations extends AuthOperations with LanguageOperations
-  with SeriesOperations with ActorOperations with EpisodeOperations with UpdateOperation
+  with SeriesOperations with ActorOperations with EpisodeOperations
+  with UpdateOperation with UserOperation
 
 /**
   * Obtaining and refreshing the JWT token
@@ -68,7 +70,7 @@ trait SeriesOperations {
     * @param searchKey Name of the series to search for.
     * @return An array of results that match the provided query.
     */
-  def searchSeries(searchKey: String): Future[Option[List[SeriesSearchData]]]
+  def searchSeries(searchKey: String): Future[Option[List[Series]]]
 
   /**
     * Returns a series records that contains all information known about a particular series id.
@@ -77,6 +79,8 @@ trait SeriesOperations {
     * @return A series record.
     */
   def getSeries(id: String): Future[Option[Series]]
+
+  def getEpisodesBySeriesID(seriesID: String): Future[Option[List[Episode]]]
 }
 
 /**
@@ -120,4 +124,31 @@ trait UpdateOperation {
     * @return An array of Update objects that match the given timeframe.
     */
   def getUpdates(fromTime: String, toTime: Option[String] = None): Future[Option[List[Update]]]
+}
+
+/**
+  * Routes for handling user data.
+  */
+trait UserOperation {
+  /**
+    * Returns basic information about the currently authenticated user.
+    *
+    * @return User information.
+    */
+  def getUser(): Future[Option[User]]
+
+  /**
+    * Returns an array of favorite series for a given user,
+    * will be a blank array if no favorites exist.
+    *
+    * @return User favorites.
+    */
+  def getUserFavorites(): Future[Option[UserFavorites]]
+
+  /**
+    * Returns an array of ratings for the given user.
+    *
+    * @return List of user ratings.
+    */
+  def getUserRatings(): Future[Option[List[UserRatings]]]
 }

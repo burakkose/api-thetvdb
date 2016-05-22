@@ -11,10 +11,11 @@ import akka.http.scaladsl.{Http, HttpExt}
 import akka.stream.ActorMaterializer
 import com.thetvdb.api.models.actor.{Actor, ActorResponse}
 import com.thetvdb.api.models.auth.{TokenRequest, TokenResponse}
-import com.thetvdb.api.models.episode.{Episode, EpisodeResponse}
+import com.thetvdb.api.models.episode.{Episode, EpisodeResponse, SeriesEpisodesResponse}
 import com.thetvdb.api.models.language.{Language, LanguageResponse, LanguagesResponse}
-import com.thetvdb.api.models.series.{Series, SeriesResponse, SeriesSearchData, SeriesSearchResponse}
+import com.thetvdb.api.models.series._
 import com.thetvdb.api.models.update.{Update, UpdateResponse}
+import com.thetvdb.api.models.user._
 import com.thetvdb.api.operations.ApiOperations
 import com.thetvdb.api.protocols.Protocols._
 import com.thetvdb.api.utils.{ApiConfig, AuthException}
@@ -29,7 +30,8 @@ trait BaseService {
   implicit protected val http: HttpExt = Http()
 }
 
-abstract class ApiService(apiKey: String) extends ApiOperations with BaseService with ApiConfig {
+abstract class ApiService(apiKey: String, username: String, userKey: String)
+  extends ApiOperations with BaseService with ApiConfig {
 
   private var header: List[HttpHeader] = List.empty[HttpHeader]
 
@@ -84,9 +86,14 @@ abstract class ApiService(apiKey: String) extends ApiOperations with BaseService
   }
 
   override def buildConnection(): this.type = {
-    val ref = Marshal(TokenRequest(apiKey)).to[RequestEntity].flatMap { request =>
-      http.singleRequest(HttpRequest(uri = LOGIN_URL, method = HttpMethods.POST, entity = request))
-    }.flatMap {
+    val ref = Marshal(TokenRequest(apiKey, username, userKey)).to[RequestEntity]
+      .flatMap { request => http.singleRequest(
+        HttpRequest(
+          uri = LOGIN_URL,
+          method = HttpMethods.POST,
+          entity = request)
+      )
+      }.flatMap {
       case HttpResponse(StatusCodes.OK, headers, entity, _) =>
         Unmarshal(entity).to[TokenResponse]
       case HttpResponse(code, _, _, _) =>
@@ -109,7 +116,7 @@ abstract class ApiService(apiKey: String) extends ApiOperations with BaseService
       }
   }
 
-  override def searchSeries(searchKey: String): Future[Option[List[SeriesSearchData]]] = {
+  override def searchSeries(searchKey: String): Future[Option[List[Series]]] = {
     val queryParams = Query(Map("name" -> searchKey))
     http.singleRequest(HttpRequest(uri =
       Uri(SEARCH_SERIES_URL).withQuery(queryParams), headers = header)
@@ -147,6 +154,55 @@ abstract class ApiService(apiKey: String) extends ApiOperations with BaseService
       .flatMap {
         case HttpResponse(StatusCodes.OK, headers, entity, _) =>
           Unmarshal(entity).to[UpdateResponse].map(resp => Some(resp.data))
+        case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
+          Future.failed(new AuthException)
+        case HttpResponse(code, _, _, _) =>
+          Future.successful(None)
+      }
+  }
+
+  override def getEpisodesBySeriesID(seriesID: String): Future[Option[List[Episode]]] = {
+    http.singleRequest(
+      HttpRequest(uri = EPISODES_OF_SERIES_URL + / + seriesID + / + "episodes", headers = header))
+      .flatMap {
+        case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+          Unmarshal(entity).to[SeriesEpisodesResponse].map(resp => Some(resp.data))
+        case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
+          Future.failed(new AuthException)
+        case HttpResponse(code, _, _, _) =>
+          Future.successful(None)
+      }
+  }
+
+  override def getUser(): Future[Option[User]] = {
+    http.singleRequest(HttpRequest(uri = USER_URL, headers = header))
+      .flatMap {
+        case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+          Unmarshal(entity).to[UserResponse].map(resp => Some(resp.data))
+        case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
+          Future.failed(new AuthException)
+        case HttpResponse(code, _, _, _) =>
+          Future.successful(None)
+      }
+  }
+
+  override def getUserFavorites(): Future[Option[UserFavorites]] = {
+    http.singleRequest(HttpRequest(uri = USER_FAVORITES_URL, headers = header))
+      .flatMap {
+        case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+          Unmarshal(entity).to[UserFavoritesResponse].map(resp => Some(resp.data))
+        case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
+          Future.failed(new AuthException)
+        case HttpResponse(code, _, _, _) =>
+          Future.successful(None)
+      }
+  }
+
+  override def getUserRatings(): Future[Option[List[UserRatings]]] = {
+    http.singleRequest(HttpRequest(uri = USER_RATINGS_URL, headers = header))
+      .flatMap {
+        case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+          Unmarshal(entity).to[UserRatingsResponse].map(resp => Some(resp.data))
         case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
           Future.failed(new AuthException)
         case HttpResponse(code, _, _, _) =>
