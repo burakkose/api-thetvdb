@@ -4,8 +4,8 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.Uri.{/, Query}
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.model.{Uri, _}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.stream.ActorMaterializer
@@ -18,7 +18,7 @@ import com.thetvdb.api.models.update.{Update, UpdateResponse}
 import com.thetvdb.api.models.user._
 import com.thetvdb.api.operations.ApiOperations
 import com.thetvdb.api.protocols.Protocols._
-import com.thetvdb.api.utils.{ApiConfig, AuthException}
+import com.thetvdb.api.utils.AuthException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
@@ -31,7 +31,7 @@ trait BaseService {
 }
 
 abstract class ApiService(apiKey: String, username: String, userKey: String)
-  extends ApiOperations with BaseService with ApiConfig {
+  extends ApiOperations with BaseService {
 
   private var header: List[HttpHeader] = List.empty[HttpHeader]
 
@@ -163,7 +163,7 @@ abstract class ApiService(apiKey: String, username: String, userKey: String)
 
   override def getEpisodesBySeriesID(seriesID: String): Future[Option[List[Episode]]] = {
     http.singleRequest(
-      HttpRequest(uri = EPISODES_OF_SERIES_URL + / + seriesID + / + "episodes", headers = header))
+      HttpRequest(uri = SERIES_URL + / + seriesID + / + "episodes", headers = header))
       .flatMap {
         case HttpResponse(StatusCodes.OK, headers, entity, _) =>
           Unmarshal(entity).to[SeriesEpisodesResponse].map(resp => Some(resp.data))
@@ -208,5 +208,31 @@ abstract class ApiService(apiKey: String, username: String, userKey: String)
         case HttpResponse(code, _, _, _) =>
           Future.successful(None)
       }
+  }
+
+  override def getUserBannerRatings(): Future[Option[List[UserRatings]]] = {
+    getUserRatingsByFilter("banner")
+  }
+
+  override def getUserSeriesRatings(): Future[Option[List[UserRatings]]] = {
+    getUserRatingsByFilter("series")
+  }
+
+  override def getUserEpisodeRatings(): Future[Option[List[UserRatings]]] = {
+    getUserRatingsByFilter("episode")
+  }
+
+  private def getUserRatingsByFilter(filter: String): Future[Option[List[UserRatings]]] = {
+    val queryParam = Query(Map("itemType" -> filter))
+    http.singleRequest(HttpRequest(uri =
+      Uri(USER_RATINGS_URL + "/query").withQuery(queryParam), headers = header)
+    ).flatMap {
+      case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+        Unmarshal(entity).to[UserRatingsResponse].map(resp => Some(resp.data))
+      case HttpResponse(StatusCodes.Unauthorized, _, _, _) =>
+        Future.failed(new AuthException)
+      case HttpResponse(code, _, _, _) =>
+        Future.successful(None)
+    }
   }
 }

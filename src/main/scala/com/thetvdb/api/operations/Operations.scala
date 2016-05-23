@@ -7,6 +7,7 @@ import com.thetvdb.api.models.language.Language
 import com.thetvdb.api.models.series.Series
 import com.thetvdb.api.models.update.Update
 import com.thetvdb.api.models.user.{User, UserFavorites, UserRatings}
+import com.thetvdb.api.utils._
 
 import scala.concurrent.Future
 
@@ -14,13 +15,12 @@ import scala.concurrent.Future
   * Api Operations
   */
 trait ApiOperations extends AuthOperations with LanguageOperations
-  with SeriesOperations with ActorOperations with EpisodeOperations
-  with UpdateOperation with UserOperation
+  with SeriesOperations with EpisodeOperations with UpdateOperation with UserOperation
 
 /**
   * Obtaining and refreshing the JWT token
   */
-trait AuthOperations {
+trait AuthOperations extends AuthConfig {
   /**
     * Returns a session token to be included in the rest of the requests.
     * Note that API key authentication is required for all subsequent requests
@@ -43,7 +43,7 @@ trait AuthOperations {
 /**
   * Available languages and information
   */
-trait LanguageOperations {
+trait LanguageOperations extends LanguageConfig {
   /**
     * All available languages.
     *
@@ -63,7 +63,7 @@ trait LanguageOperations {
 /**
   * Search for a particular series and information about a specific series
   */
-trait SeriesOperations {
+trait SeriesOperations extends SeriesConfig {
   /**
     * Allows the user to search for a series based on the following parameters.
     *
@@ -80,13 +80,6 @@ trait SeriesOperations {
     */
   def getSeries(id: String): Future[Option[Series]]
 
-  def getEpisodesBySeriesID(seriesID: String): Future[Option[List[Episode]]]
-}
-
-/**
-  * Information about actors
-  */
-trait ActorOperations {
   /**
     * Returns actors for the given series id
     *
@@ -94,12 +87,21 @@ trait ActorOperations {
     * @return An array of actor objects for the given series id.
     */
   def getActors(seriesID: String): Future[Option[List[Actor]]]
+
+
+  /**
+    * All episodes for a given series.
+    *
+    * @param seriesID ID of the series
+    * @return An array of episode objects for the given series id.
+    */
+  def getEpisodesBySeriesID(seriesID: String): Future[Option[List[Episode]]]
 }
 
 /**
   * Information about a specific episode
   */
-trait EpisodeOperations {
+trait EpisodeOperations extends EpisodeConfig {
   /**
     * All episodes for a given series.
     *
@@ -112,7 +114,7 @@ trait EpisodeOperations {
 /**
   * Series that have been recently updated.
   */
-trait UpdateOperation {
+trait UpdateOperation extends UpdateConfig {
   /**
     * Returns an array of series that have changed in a maximum of one week
     * blocks since the provided fromTime.
@@ -129,7 +131,7 @@ trait UpdateOperation {
 /**
   * Routes for handling user data.
   */
-trait UserOperation {
+trait UserOperation extends UserConfig {
   /**
     * Returns basic information about the currently authenticated user.
     *
@@ -151,4 +153,25 @@ trait UserOperation {
     * @return List of user ratings.
     */
   def getUserRatings(): Future[Option[List[UserRatings]]]
+
+  /**
+    * Returns an array of rating of episodes for a given user
+    *
+    * @return List of user's episodes ratings
+    */
+  def getUserEpisodeRatings: Future[Option[List[UserRatings]]]
+
+  /**
+    * Returns an array of rating of series for a given user
+    *
+    * @return List of the user's series ratings
+    */
+  def getUserSeriesRatings: Future[Option[List[UserRatings]]]
+
+  /**
+    * Returns an array of rating of banner for a given user
+    *
+    * @return List of the user's banners ratings
+    */
+  def getUserBannerRatings: Future[Option[List[UserRatings]]]
 }
